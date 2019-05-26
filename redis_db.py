@@ -25,3 +25,12 @@ class redis_database:
 
 	def get_message(self):
 		return self.p.get_message()
+
+	def expire(self,name, time):
+		return self.r.expire(name, time)
+
+	def ttl(self,name):
+		return self.r.expire(name)
+
+	def setex(self,name, time, value):
+		return self.r.setex(name, time, value)

@@ -61,57 +61,60 @@ redis_db.subscribe('email_send_test')
 syslog.syslog(syslog.LOG_NOTICE, 'Email sender Started successfully')
 
 while True:
-		message = redis_db.get_message()
-		if message and message['type'] == 'pmessage':
-			if message['channel'] == 'email_change_data':
-				data = json.loads(message['data'])
+	#Refresh watchdog
+	redis_db.setex('emailsender_watchdog','',2)
 
-				email_from			= data['email_from']
-				password			= data['password']
-				email_to			= data['email_to']
-				smtp_server_url		= data['smtp_server_url']
-				smtp_server_port	= int(data['smtp_server_port'])
-				
-				#Update SQlite Table
-				sqlite_db.update_email_data(email_from,password,email_to,smtp_server_url,smtp_server_port)
+	message = redis_db.get_message()
+	if message and message['type'] == 'pmessage':
+		if message['channel'] == 'email_change_data':
+			data = json.loads(message['data'])
 
-				#Update Redis values
-				redis_db.set_var('email_from',email_from)
-				redis_db.set_var('password',password)
-				redis_db.set_var('email_to',email_to)
-				redis_db.set_var('smtp_server_url',smtp_server_url)
-				redis_db.set_var('smtp_server_port',smtp_server_port)
+			email_from			= data['email_from']
+			password			= data['password']
+			email_to			= data['email_to']
+			smtp_server_url		= data['smtp_server_url']
+			smtp_server_port	= int(data['smtp_server_port'])
+		
+			#Update SQlite Table
+			sqlite_db.update_email_data(email_from,password,email_to,smtp_server_url,smtp_server_port)
 
-				email_sender.conf_email(email_from,password,email_to,smtp_server_url,smtp_server_port)
+			#Update Redis values
+			redis_db.set_var('email_from',email_from)
+			redis_db.set_var('password',password)
+			redis_db.set_var('email_to',email_to)
+			redis_db.set_var('smtp_server_url',smtp_server_url)
+			redis_db.set_var('smtp_server_port',smtp_server_port)
 
-				redis_db.publish('event_success','Email data changed')
-				syslog.syslog(syslog.LOG_NOTICE, 'Email data changed successfully')
+			email_sender.conf_email(email_from,password,email_to,smtp_server_url,smtp_server_port)
 
-			elif message['channel'] == 'email_send_det':
-				if activate:
-					error = email_sender.send_email('WARNING: An intrusion occurs','PresenceOS has detected motion on the camera spot.' \
-					 'Please Check PresenceOS Web to verify the detection.')
-					if not error:
-						syslog.syslog(syslog.LOG_NOTICE, 'Email sended successfully')
-					else:
-						syslog.syslog(syslog.LOG_ERR, 'ERROR sending email')
+			redis_db.publish('event_success','Email data changed')
+			syslog.syslog(syslog.LOG_NOTICE, 'Email data changed successfully')
 
-			elif message['channel'] == 'email_send_test':
-				error = email_sender.send_email('Test','Prueba')
+		elif message['channel'] == 'email_send_det':
+			if activate:
+				error = email_sender.send_email('WARNING: An intrusion occurs','PresenceOS has detected motion on the camera spot.' \
+				 'Please Check PresenceOS Web to verify the detection.')
 				if not error:
 					syslog.syslog(syslog.LOG_NOTICE, 'Email sended successfully')
-					redis_db.publish('event_success','Email sended successfully')
 				else:
 					syslog.syslog(syslog.LOG_ERR, 'ERROR sending email')
-					redis_db.publish('event_error','ERROR sending email')
-			elif message['channel'] == 'email_activate':
-				if message['data'] == '1':
-					activate = 1
-					syslog.syslog(syslog.LOG_NOTICE, 'Emailsender activated')
-				elif message['data'] == '0':
-					activate = 0
-					syslog.syslog(syslog.LOG_NOTICE, 'Emailsender deactivated')
-				sqlite_db.activate_email_send(activate)
-				redis_db.set_var('send_email_activate',activate)
-		else:
-			time.sleep(0.05)
+
+		elif message['channel'] == 'email_send_test':
+			error = email_sender.send_email('Test','Prueba')
+			if not error:
+				syslog.syslog(syslog.LOG_NOTICE, 'Email sended successfully')
+				redis_db.publish('event_success','Email sended successfully')
+			else:
+				syslog.syslog(syslog.LOG_ERR, 'ERROR sending email')
+				redis_db.publish('event_error','ERROR sending email')
+		elif message['channel'] == 'email_activate':
+			if message['data'] == '1':
+				activate = 1
+				syslog.syslog(syslog.LOG_NOTICE, 'Emailsender activated')
+			elif message['data'] == '0':
+				activate = 0
+				syslog.syslog(syslog.LOG_NOTICE, 'Emailsender deactivated')
+			sqlite_db.activate_email_send(activate)
+			redis_db.set_var('send_email_activate',activate)
+	else:
+		time.sleep(0.1)
