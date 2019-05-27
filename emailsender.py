@@ -73,8 +73,10 @@ while True:
 			password			= data['password']
 			email_to			= data['email_to']
 			smtp_server_url		= data['smtp_server_url']
-			smtp_server_port	= int(data['smtp_server_port'])
-		
+			try:
+				smtp_server_port	= int(data['smtp_server_port'])
+			except:  
+				smtp_server_port	= 0
 			#Update SQlite Table
 			sqlite_db.update_email_data(email_from,password,email_to,smtp_server_url,smtp_server_port)
 
