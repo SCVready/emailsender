@@ -102,7 +102,7 @@ while True:
 					syslog.syslog(syslog.LOG_ERR, 'ERROR sending email')
 
 		elif message['channel'] == 'email_send_test':
-			error = email_sender.send_email('Test','Prueba')
+			error = email_sender.send_email('PresenceOS email Test','Email test.')
 			if not error:
 				syslog.syslog(syslog.LOG_NOTICE, 'Email sended successfully')
 				redis_db.publish('event_success','Email sended successfully')
