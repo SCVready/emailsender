@@ -35,12 +35,15 @@ sqlite_db.set_email_data(0,'','','','',0)
 #Read SQlite Table
 data = sqlite_db.get_email_data()
 
-activate 			= data[1]
-email_from			= data[2]
-password			= data[3]
-email_to			= data[4]
+activate 		= data[1]
+email_from		= data[2]
+password		= data[3]
+email_to		= data[4]
 smtp_server_url		= data[5]
 smtp_server_port	= data[6]
+
+#Set version
+redis_db.set_var('emailsender_version','0.1')
 
 #Update RedisDB
 redis_db.set_var('send_email_activate',activate)
