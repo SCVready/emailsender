@@ -1,2 +1,2 @@
 # emailsender
-Project part of PresenceOS
+Part of PresenceOS project (see https://github.com/SCVready/kinectalarm).
